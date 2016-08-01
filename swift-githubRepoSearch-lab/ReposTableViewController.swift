@@ -27,7 +27,7 @@ class ReposTableViewController: UITableViewController {
         
     }
     @IBAction func searchButtonTapped(sender: AnyObject) {
-        let alertController = UIAlertController(title: "Search Repos", message: "Enter repo to search", preferredStyle: UIAlertControllerStyle(rawValue: 1)!)
+        let alertController = UIAlertController(title: "Search Repos", message: "Enter repo to search", preferredStyle: UIAlertControllerStyle.Alert)
         
         alertController.addTextFieldWithConfigurationHandler { (searchField) in
             //"Search term" is the grey placeholder text
@@ -39,7 +39,7 @@ class ReposTableViewController: UITableViewController {
         //            textField.placeholder = NSLocalizedString(@"LoginPlaceholder", @"Login");
         //            }];
         
-        let okAction = UIAlertAction(title: NSLocalizedString("Search", comment: "Search action"), style: UIAlertActionStyle(rawValue: 0)!) {[weak weakSelf = self] (action)  in
+        let okAction = UIAlertAction(title: NSLocalizedString("Search", comment: "Search action"), style: UIAlertActionStyle.Default) {[weak weakSelf = self] (action)  in
             print("Search tapped")
             let searchWord = alertController.textFields?.first
             if let searchWord = searchWord?.text {
@@ -53,8 +53,6 @@ class ReposTableViewController: UITableViewController {
         }
         alertController.addAction(okAction)
         
-        
-        
         presentViewController(alertController, animated: true, completion: nil)
         
     }
@@ -64,16 +62,32 @@ class ReposTableViewController: UITableViewController {
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         let selectedRepo = store.repositories[indexPath.row]
         let cell = tableView.dequeueReusableCellWithIdentifier("repoCell", forIndexPath: indexPath)
-        
-        store.toggleStarStatusForRepository(selectedRepo) { (nowStarred) in
+        cell.textLabel?.text = selectedRepo.fullName
+
+        store.toggleStarStatusForRepository(selectedRepo) { [weak weakSelf = self]
+            (starred) in
+            
+            
             NSOperationQueue.mainQueue().addOperationWithBlock({
-                if nowStarred {
+                
+                //                cell.detailTextLabel?.text = starred ? "★" : ""
+                print("Starred is \(starred) so were gonna set it to \(starred ? "★" : "")")
+                if starred {
                     cell.detailTextLabel?.text = "★"
-                    
-                }else {
-                    cell.detailTextLabel?.text = ""
+                } else {
+                    cell.detailTextLabel?.text  = ""
                 }
-                cell.textLabel?.text = selectedRepo.fullName
+                
+                let alertController = UIAlertController(
+                    title: selectedRepo.fullName,
+                    message: starred ? "Has been starred" :  "Has been unstarred",
+                    preferredStyle: UIAlertControllerStyle.Alert)
+                
+                let okAction = UIAlertAction(title: "OK",
+                    style: UIAlertActionStyle.Default, handler: nil)
+                
+                alertController.addAction(okAction)
+                weakSelf?.presentViewController(alertController, animated: true, completion: nil)
             })
             
         }
@@ -92,6 +106,11 @@ class ReposTableViewController: UITableViewController {
         cell.detailTextLabel?.text = ""
         
         return cell
+    }
+    func presentAlert(alertController : UIAlertController) -> () {
+        
+        presentViewController(alertController, animated: true, completion: nil)
+        
     }
     
 }
